@@ -1,6 +1,7 @@
 import type {
     ActionArgs,
-    LoaderArgs
+    LoaderArgs,
+    MetaFunction
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
@@ -53,6 +54,21 @@ export const action = async ({
     await db.joke.delete({ where: { id: params.jokeId } });
     return redirect("/jokes");
 };
+
+export const meta: MetaFunction<typeof loader> = ({
+    data,
+}) => {
+    if (!data) {
+        return {
+            title: "no joke",
+            description: "no joke found",
+        }
+    }
+    return {
+        title: `"${data.joke.name}" joke`,
+        description: `Enjoy the "${data.joke.name}" joke and much more`,
+    };
+}
 
 export default function JokeRoute() {
     const data = useLoaderData<typeof loader>();

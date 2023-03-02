@@ -1,8 +1,8 @@
 import type {
     ActionArgs,
     LinksFunction,
+    MetaFunction
 } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import {
     Link,
     useActionData,
@@ -17,6 +17,12 @@ import { createUserSession, login, register } from "~/utils/session.server";
 export const links: LinksFunction = () => [
     { rel: "stylesheet", href: stylesUrl },
 ];
+export const meta: MetaFunction = () => {
+    return {
+        title: "Login",
+        description: "A simple app to demonstrate Remix",
+    };
+};
 
 function validateUsername(username: unknown) {
     if (typeof username !== "string" || username.length < 3) {
@@ -75,7 +81,6 @@ export const action = async ({ request }: ActionArgs) => {
     switch (loginType) {
         case "login": {
             const user = await login({ username, password });
-            console.log({ user });
             if (!user) {
                 return badRequest({
                     fieldErrors: null,

@@ -1,12 +1,18 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
     useCatch,
-    useLoaderData,
-    Link
+    useLoaderData
 } from "@remix-run/react";
 
 import { db } from "~/utils/db.server";
+
+export const meta: MetaFunction = () => {
+    return {
+        title: "Random Joke",
+        description: "A random joke",
+    };
+}
 
 export const loader = async ({ params }: LoaderArgs) => {
     const count = await db.joke.count();
