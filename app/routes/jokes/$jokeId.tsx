@@ -5,17 +5,17 @@ import type {
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
-    Form,
-    Link,
     useCatch,
     useLoaderData,
     useParams,
 } from "@remix-run/react";
+import { JokeDisplay } from "~/components/joke";
 
 import { db } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import { getUserId, requireUserId } from "~/utils/session.server";
 
-export const loader = async ({ params }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderArgs) => {
+    const userId = await getUserId(request);
     const joke = await db.joke.findUnique({
         where: { id: params.jokeId },
     });
@@ -24,7 +24,10 @@ export const loader = async ({ params }: LoaderArgs) => {
             status: 404
         });
     }
-    return json({ joke });
+    return json({
+        joke,
+        isOwner: joke.jokesterId === userId,
+    });
 };
 
 export const action = async ({
@@ -34,7 +37,7 @@ export const action = async ({
     const form = await request.formData();
     if (form.get("intent") !== "delete") {
         throw new Response(
-            `The intenent ${form.get("intent")} is not supported`,
+            `The intent ${form.get("intent")} is not supported`,
             { status: 400 }
         );
     }
@@ -75,21 +78,7 @@ export default function JokeRoute() {
     const data = useLoaderData<typeof loader>();
 
     return (
-        <div>
-            <p>Here's your hilarious joke:</p>
-            <p>{data.joke.content}</p>
-            <Link to=".">{data.joke.name} Permalink</Link>
-            <Form method="post">
-                <button
-                    className="button"
-                    name="intent"
-                    type="submit"
-                    value="delete"
-                >
-                    Delete
-                </button>
-            </Form>
-        </div>
+        <JokeDisplay canDelete={data.isOwner} isOwner={data.isOwner} joke={data.joke} />
     );
 }
 
